@@ -9,11 +9,8 @@ import time
 from PIL import Image, ImageDraw, ImageFont
 import requests
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-import asyncio
 from bs4 import BeautifulSoup
 import pandas as pd
-from selenium.webdriver.common.action_chains import ActionChains
 from concurrent.futures import ThreadPoolExecutor
 import threading
 
@@ -30,13 +27,6 @@ def parse(urls):
     try:
         driver = webdriver.Firefox(options=options)
         for url in urls:
-            buffer_name = ''
-            buffer_can_b = ''
-            buffer_can_c = ''
-            buffer_can_lin_a = ''
-            buffer_can_lin_ab = ''
-            buffer_can_imoimi = ''
-            buffer_can_c = ''
 
             results = []
             
