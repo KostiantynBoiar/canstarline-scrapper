@@ -6,7 +6,6 @@ import os
 import pdfkit
 from selenium.webdriver.common.by import By
 import time
-from PIL import Image, ImageDraw, ImageFont
 import requests
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
@@ -21,6 +20,8 @@ main_urls = []
 lock = threading.Lock()
 
 
+
+
 def parse(urls):
     print(urls)
 
@@ -28,6 +29,13 @@ def parse(urls):
         driver = webdriver.Firefox(options=options)
         for url in urls:
 
+            buffer_name = ''
+            buffer_can_a = ''
+            buffer_can_b = ''
+            buffer_can_c = ''
+            buffer_can_lin_a = ''
+            buffer_can_lin_ab = ''
+            buffer_can_imoimi = ''
             results = []
             
             #if url in get_url_column_from_csv():
@@ -41,15 +49,7 @@ def parse(urls):
         # Refresh the page
             driver.refresh()
             time.sleep(1)
-            """
-            element_to_hover_over = driver.find_element(By.CSS_SELECTOR, ".ant-menu-horizontal > .ant-menu-submenu > .ant-menu-submenu-title")
-            actions = ActionChains(driver)
-            actions.move_to_element(element_to_hover_over).perform()
 
-            # Wait until the element_to_click is clickable
-            element_to_click = WebDriverWait(driver, 100).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[2]/div/div/ul/li/span/button/span[text()='English']")))
-            element_to_click.click()
-"""
             headers_dic = {}
             i = 2
             
@@ -68,7 +68,8 @@ def parse(urls):
                 model = driver.find_element(By.CSS_SELECTOR, '#root > section > main > section > div > form > div > div > div > div:nth-child(1) > div > div > div > div > div > div > div > span.ant-select-selection-item').text
                 year = driver.find_element(By.CSS_SELECTOR, '#root > section > main > section > div > form > div > div > div > div:nth-child(2) > div > div > div > div > div > div > div > span.ant-select-selection-item').text
                 version = driver.find_element(By.CSS_SELECTOR, '#root > section > main > section > div > form > div > div > div > div:nth-child(3) > div > div > div > div > div > div > div > span.ant-select-selection-item').text
-
+                firmware = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > div.ant-row > div > div > div > div > div > div > div > div > span.ant-select-selection-item").text
+                j = 0
                 for rows in driver.find_elements(By.CSS_SELECTOR, "div > div.functions-tables > div:nth-child(1) > div > div > div > div > div > div > table > tbody > tr"):
                     
 
@@ -119,7 +120,7 @@ def parse(urls):
                     # Если name совпадает с comment
                     if name == comment:
                         #row = brand, model, year, version, buffer_name, buffer_can_a, buffer_can_b, buffer_can_c, buffer_can_lin_a, buffer_can_lin_ab, buffer_can_imoimi, comment, url
-                        row = '', '', '', '', '', '', '', '', '', '', '', comment, ''
+                        row = firmware, brand, model, year, version, buffer_name, buffer_can_a, buffer_can_b, buffer_can_c, buffer_can_lin_a, buffer_can_lin_ab, buffer_can_imoimi, comment, url
 
                         results.append(row)
                         print(row)
@@ -143,9 +144,15 @@ def parse(urls):
                         buffer_can_lin_ab = LIN_AB
                         buffer_can_imoimi = IMO_IMI
 
-                        row = brand, model, year, version, name, CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
-                        results.append(row)
-                        print(row)
+                        if j == 0:
+                            row = firmware, brand, model, year, version, name, CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
+                            results.append(row)
+                            print(row)
+                        else:
+                            row = firmware, brand, model, year, version, name, CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
+                            results.append(row)
+                            print(row)  
+                        
                 i = 1
                 print(headers_dic)
 
@@ -160,7 +167,7 @@ def parse(urls):
                         comment_rows.append(comment.text)
                     
                     for item, comment in zip(item_rows, comment_rows):
-                        row = brand, model, year, version, f'Button: {item}', CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
+                        row = firmware, brand, model, year, version, f'Button: {item}', CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
 
                         results.append(row)
                         print(row)
@@ -228,7 +235,7 @@ def get_links(urls, driver):
     return urls_list
 
 def save_to_csv(items, version='us'):
-    df = pd.DataFrame(items, columns=['Brand', 'Model', 'Year', 'Version', 'Function', 'CAN_A', 'CAN_B', 'CAN_C', 'LIN_A', 'LIN_AB', 'IMO/IMI', 'Comment', 'URL'])
+    df = pd.DataFrame(items, columns=['Firmware','Brand', 'Model', 'Year', 'Version', 'Function', 'CAN_A', 'CAN_B', 'CAN_C', 'LIN_A', 'LIN_AB', 'IMO/IMI', 'Comment', 'URL'])
     df = df.drop_duplicates()  # Удаление дубликатов
     df.to_csv(f'data_{version}.csv', mode='a', index=False)
 
@@ -254,10 +261,10 @@ def parse_chunk(chunk):
 if __name__ == "__main__":
     main()
     #parse(main_urls)
-    
-    chunks = [main_urls[i:i + 20] for i in range(0, len(main_urls), 20)]
+    count_of_threads = 2
+    chunks = [main_urls[i:i + count_of_threads] for i in range(0, len(main_urls), count_of_threads)]
          
-    with ThreadPoolExecutor(max_workers=20) as executor:
+    with ThreadPoolExecutor(max_workers=count_of_threads) as executor:
         executor.map(parse, chunks)
 
 """
