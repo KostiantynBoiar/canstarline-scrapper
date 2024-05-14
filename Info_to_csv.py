@@ -12,15 +12,26 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 import threading
-
+import json
 
 options = Options()
 options.add_argument("--headless")
 main_urls = []
 lock = threading.Lock()
 
+replace_ru_dict = {}
+replace_us_dict = {}
+
+with open("replace_words_ru.json", 'r', encoding='utf-8') as f:
+    replace_ru_dict = json.load(f)
+    print(replace_ru_dict)
+f.close()
 
 
+with open("replace_words_us.json", 'r', encoding='utf-8') as f:
+    replace_us_dict = json.load(f)
+    print(replace_us_dict)
+f.close()
 
 def parse(urls):
     print(urls)
@@ -75,6 +86,15 @@ def parse(urls):
 
                     name = rows.find_element(By.CSS_SELECTOR, "div > div.functions-tables > div:nth-child(1) > div > div > div > div > div > div > table > tbody > tr > td:nth-child(1)").text
                     try:
+                        name_gazer_ru = name.replace(name, replace_ru_dict[name])
+                    except:
+                        name_gazer_ru = ''
+                    try:
+                        name_gazer_us = name.replace(name, replace_us_dict[name])
+                    except:
+                        name_gazer_us = ''
+
+                    try:
                         comment = rows.find_element(By.CSS_SELECTOR, "div > div.functions-tables > div:nth-child(1) > div > div > div > div > div > div > table > tbody > tr > td > div.functions-table_function-commentary").text
                     except:
                         comment = ''
@@ -120,7 +140,7 @@ def parse(urls):
                     # Если name совпадает с comment
                     if name == comment:
                         #row = brand, model, year, version, buffer_name, buffer_can_a, buffer_can_b, buffer_can_c, buffer_can_lin_a, buffer_can_lin_ab, buffer_can_imoimi, comment, url
-                        row = firmware, brand, model, year, version, buffer_name, buffer_can_a, buffer_can_b, buffer_can_c, buffer_can_lin_a, buffer_can_lin_ab, buffer_can_imoimi, comment, url
+                        row = '', '', '', '', '', '', '', '', '', '', '', '', '',  comment, ''
 
                         results.append(row)
                         print(row)
@@ -145,11 +165,11 @@ def parse(urls):
                         buffer_can_imoimi = IMO_IMI
 
                         if j == 0:
-                            row = firmware, brand, model, year, version, name, CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
+                            row = firmware, brand, model, year, version, name, name_gazer_ru, name_gazer_us, CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
                             results.append(row)
                             print(row)
                         else:
-                            row = firmware, brand, model, year, version, name, CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
+                            row = firmware, brand, model, year, version, name, name_gazer_ru, name_gazer_us, CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
                             results.append(row)
                             print(row)  
                         
@@ -167,7 +187,7 @@ def parse(urls):
                         comment_rows.append(comment.text)
                     
                     for item, comment in zip(item_rows, comment_rows):
-                        row = firmware, brand, model, year, version, f'Button: {item}', CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
+                        row = firmware, brand, model, year, version, f'Button: {item}', '', CAN_A, CAN_B, CAN_C, LIN_A, LIN_AB, IMO_IMI, comment, url
 
                         results.append(row)
                         print(row)
@@ -235,7 +255,7 @@ def get_links(urls, driver):
     return urls_list
 
 def save_to_csv(items, version='us'):
-    df = pd.DataFrame(items, columns=['Firmware','Brand', 'Model', 'Year', 'Version', 'Function', 'CAN_A', 'CAN_B', 'CAN_C', 'LIN_A', 'LIN_AB', 'IMO/IMI', 'Comment', 'URL'])
+    df = pd.DataFrame(items, columns=['Firmware','Brand', 'Model', 'Year', 'Version', 'Function', 'Function Ru', 'Function Us', 'CAN_A', 'CAN_B', 'CAN_C', 'LIN_A', 'LIN_AB', 'IMO/IMI', 'Comment', 'URL'])
     df = df.drop_duplicates()  # Удаление дубликатов
     df.to_csv(f'data_{version}.csv', mode='a', index=False)
 
@@ -261,7 +281,7 @@ def parse_chunk(chunk):
 if __name__ == "__main__":
     main()
     #parse(main_urls)
-    count_of_threads = 2
+    count_of_threads = 1
     chunks = [main_urls[i:i + count_of_threads] for i in range(0, len(main_urls), count_of_threads)]
          
     with ThreadPoolExecutor(max_workers=count_of_threads) as executor:
