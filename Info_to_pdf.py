@@ -12,6 +12,8 @@ import requests
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
+import random
+
 
 options = Options()
 options.add_argument("--headless")
@@ -36,19 +38,18 @@ def download_car_image(driver, final_filename):
             print(f"Изображение {image_name} успешно скачано.")
     f.close()
     
-def download_images(driver, final_filename):
+def download_images(driver, final_filename, filename_header, filename_var, element):
 
     save_folder = f'C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}'
     # Создаем папку для сохранения изображений, если она не существует
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
-
     # Находим все элементы с указанным селектором
-    images = driver.find_elements(By.CSS_SELECTOR, ".gallery .gallery-previews_item .gallery-preview-link")
+    images = element.find_elements(By.CSS_SELECTOR, ".gallery .gallery-previews_item .gallery-preview-link")
     # Скачиваем изображения
     for i, image in enumerate(images):
         image_url = image.get_attribute("href")
-        image_name = f"zImage_{final_filename}_{i}.jpg"  
+        image_name = f"zImage_{final_filename}_{filename_header}_{filename_var}_{i}.jpg"  
         image_path = os.path.join(save_folder, image_name)
         with open(image_path, "wb") as f:
             f.write(requests.get(image_url).content)
@@ -56,7 +57,7 @@ def download_images(driver, final_filename):
     f.close()
 
 
-def caputure_element_as_screenshot(url_models, css_selector):
+def caputure_element_as_screenshot(url_models):
 
     service = Service("geckodriver.exe")
     service.start()
@@ -85,7 +86,8 @@ def caputure_element_as_screenshot(url_models, css_selector):
 
             css_selectors = [".device-connection", "#root > section > main > section > div > form", ".download-firmware-button", ".filter-item.filter-firmware .ant-form-item-row", "#root > section > main > section > div > div.ant-tabs.ant-tabs-top.ant-tabs-large.single-model_tabs > div.ant-tabs-nav > div.ant-tabs-nav-wrap > div > div:nth-child(3)", "#root > section > main > section > div > div.ant-tabs.ant-tabs-top.ant-tabs-large.single-model_tabs > div.ant-tabs-nav > div.ant-tabs-nav-wrap > div > div:nth-child(4)", "#root > section > main > section > div > div.ant-tabs.ant-tabs-top.ant-tabs-large.single-model_tabs > div.ant-tabs-nav > div.ant-tabs-nav-wrap > div > div:nth-child(5)", ".firmware-version-banner_container"]
             download_car_image(driver, final_filename)
-            download_images(driver, final_filename)
+
+
 
             for selector in css_selectors:
                 driver.implicitly_wait(4)
@@ -95,10 +97,37 @@ def caputure_element_as_screenshot(url_models, css_selector):
                         driver.execute_script("arguments[0].style.display='none'", element)
                     except:
                         continue
-            time.sleep(1)
-            element = driver.find_element(By.CSS_SELECTOR, css_selector)
-            element.screenshot(f'C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}/{final_filename}.png')
-            
+
+            var = 1
+            img_id = 0
+            bool_var = False
+            for elem in driver.find_elements(By.CSS_SELECTOR, ".connections .connections-collapse-item"):
+
+                for var_elem in elem.find_elements(By.CSS_SELECTOR, ".ant-tabs-tab-btn, .ant-tabs-tab-remove"):
+                    var += 1
+                print(var)
+
+                elem_header = elem.find_element(By.CSS_SELECTOR, "div > div> div.ant-collapse-header > span").text
+                elem.screenshot(f"C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}/{final_filename}_{elem_header}_Option 1.png")
+                img_id += 1
+
+                #download_images(driver, final_filename, elem_header, 'Option 1', elem)    
+                var_elements = elem.find_elements(By.CSS_SELECTOR, f".ant-tabs-tab-btn, .ant-tabs-tab-remove")
+                for var_element in var_elements:
+                    if var_element.get_attribute("aria-selected") == 'true':
+                        continue
+                    else:
+                        try:
+                            var_element.click()
+                            elem.screenshot(f"C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}/{final_filename}_{elem_header}_{var_element.text}.png")
+                            download_images(driver, final_filename, elem_header, '', elem)
+                            img_id += 1
+                        except:
+                            print("Element does not exsist")
+
+
+                var = 1
+            img_id = 0
 
             driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > div.ant-tabs.ant-tabs-top.ant-tabs-large.single-model_tabs > div.ant-tabs-nav > div.ant-tabs-nav-wrap > div > div:nth-child(1)").click()
             time.sleep(1)
@@ -114,10 +143,12 @@ def caputure_element_as_screenshot(url_models, css_selector):
                         driver.execute_script("arguments[0].style.display='none'", element)
                     except:
                         continue
-            
+        
+
+          
             css_selector_reg = '#root > section > main'
             element_reg = driver.find_element(By.CSS_SELECTOR, css_selector_reg)
-            element_reg.screenshot(f'C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}/{final_filename}_reg.png')
+            element_reg.screenshot(f'C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}/zFunctions_{final_filename}_reg.png')
 
             create_pdf_from_screenshots(final_filename)
 
@@ -154,7 +185,7 @@ def get_links(urls):
     actions = ActionChains(driver)
     actions.move_to_element(element_to_hover_over).perform()
     time.sleep(1)
-    element_to_click = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/ul/li/span/button/span[text()='Український']")
+    element_to_click = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/ul/li/span/button/span[text()='English']")
 
     element_to_click.click()
 
@@ -207,7 +238,8 @@ def get_links(urls):
 def main():
     urls = ["https://can.starline.ru/20"]#, "https://can.starline.ru/40"]
     links = get_links(urls)
-    caputure_element_as_screenshot(links, "#root > section > main")
+    #links = ['https://can.starline.ru/20/1/6581', 'https://can.starline.ru/40/3/6588']
+    caputure_element_as_screenshot(links)
     
 
 if __name__ == "__main__":
