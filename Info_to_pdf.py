@@ -45,8 +45,22 @@ def download_images(driver, final_filename, filename_var):
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
     # Находим все элементы с указанным селектором
-    images = driver.find_elements(By.CSS_SELECTOR, ".gallery .gallery-previews_item .gallery-preview-link")
+    
+    for elem in driver.find_elements(By.CSS_SELECTOR, ".connections .connections-collapse-item"):
 
+        images = elem.find_elements(By.CSS_SELECTOR, ".gallery .gallery-previews_item .gallery-preview-link")
+        elem_header = elem.find_element(By.CSS_SELECTOR, "div > div> div.ant-collapse-header > span").text
+
+        for i, image in enumerate(images):
+            
+            image_url = image.get_attribute("href")
+            image_name = f"zImage_{final_filename}_{elem_header}_{i}.jpg"  
+            image_path = os.path.join(save_folder, image_name)
+            with open(image_path, "wb") as f:
+                f.write(requests.get(image_url).content)
+                print(f"Изображение {image_name} успешно скачано.")
+        f.close()
+"""
     # Скачиваем изображения
     for i, image in enumerate(images):
         image_url = image.get_attribute("href")
@@ -56,7 +70,7 @@ def download_images(driver, final_filename, filename_var):
             f.write(requests.get(image_url).content)
             print(f"Изображение {image_name} успешно скачано.")
     f.close()
-
+"""
 
 def caputure_element_as_screenshot(url_models):
 
@@ -239,9 +253,9 @@ def get_links(urls):
     
 
 def main():
-    #urls = ["https://can.starline.ru/20"]#, "https://can.starline.ru/40"]
-    #links = get_links(urls)
-    links = ['https://can.starline.ru/20/1/6581', 'https://can.starline.ru/40/3/6588']
+    urls = ["https://can.starline.ru/20"]#, "https://can.starline.ru/40"]
+    links = get_links(urls)
+    #links = ['https://can.starline.ru/20/1/6581', 'https://can.starline.ru/40/3/6588']
     caputure_element_as_screenshot(links)
     
 
