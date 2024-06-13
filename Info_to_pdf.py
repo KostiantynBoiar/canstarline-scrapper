@@ -38,18 +38,19 @@ def download_car_image(driver, final_filename):
             print(f"Изображение {image_name} успешно скачано.")
     f.close()
     
-def download_images(driver, final_filename, filename_header, filename_var, element):
+def download_images(driver, final_filename, filename_var):
 
     save_folder = f'C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}'
     # Создаем папку для сохранения изображений, если она не существует
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
     # Находим все элементы с указанным селектором
-    images = element.find_elements(By.CSS_SELECTOR, ".gallery .gallery-previews_item .gallery-preview-link")
+    images = driver.find_elements(By.CSS_SELECTOR, ".gallery .gallery-previews_item .gallery-preview-link")
+
     # Скачиваем изображения
     for i, image in enumerate(images):
         image_url = image.get_attribute("href")
-        image_name = f"zImage_{final_filename}_{filename_header}_{filename_var}_{i}.jpg"  
+        image_name = f"zImage_{final_filename}_{filename_var}_{i}.jpg"  
         image_path = os.path.join(save_folder, image_name)
         with open(image_path, "wb") as f:
             f.write(requests.get(image_url).content)
@@ -120,13 +121,15 @@ def caputure_element_as_screenshot(url_models):
                         try:
                             var_element.click()
                             elem.screenshot(f"C:/Users/Kostiantyn/Documents/PythonScripts/pr1/{final_filename}/{final_filename}_{elem_header}_{var_element.text}.png")
-                            download_images(driver, final_filename, elem_header, '', elem)
                             img_id += 1
                         except:
                             print("Element does not exsist")
 
 
                 var = 1
+
+            download_images(driver, final_filename, '')
+
             img_id = 0
 
             driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > div.ant-tabs.ant-tabs-top.ant-tabs-large.single-model_tabs > div.ant-tabs-nav > div.ant-tabs-nav-wrap > div > div:nth-child(1)").click()
@@ -236,9 +239,9 @@ def get_links(urls):
     
 
 def main():
-    urls = ["https://can.starline.ru/20"]#, "https://can.starline.ru/40"]
-    links = get_links(urls)
-    #links = ['https://can.starline.ru/20/1/6581', 'https://can.starline.ru/40/3/6588']
+    #urls = ["https://can.starline.ru/20"]#, "https://can.starline.ru/40"]
+    #links = get_links(urls)
+    links = ['https://can.starline.ru/20/1/6581', 'https://can.starline.ru/40/3/6588']
     caputure_element_as_screenshot(links)
     
 
