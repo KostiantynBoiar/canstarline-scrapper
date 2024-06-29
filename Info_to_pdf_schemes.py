@@ -15,10 +15,18 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 
 options = Options()
-options.add_argument("--headless")
+#options.add_argument("--headless")
 
 driver = webdriver.Firefox(options=options)
 
+
+def parce(links):
+    
+    service = Service("geckodriver.exe")
+    service.start()
+    
+    for link in links:
+        driver.get(f'{link}#schemes')
 
 
 
@@ -59,8 +67,11 @@ def get_links(urls):
 
 
 def main():
-    urls = ["https://can.starline.ru/40"]
-    links = get_links(urls)
+    #urls = ["https://can.starline.ru/40"]
+    #links = get_links(urls)
+    links = ["https://can.starline.ru/20/23/9726"]
 
+    parce(links)
+    
 if __name__ == '__main__':
     main()
