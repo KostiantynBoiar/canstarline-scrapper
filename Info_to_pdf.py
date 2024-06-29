@@ -7,7 +7,6 @@ import os
 import pdfkit
 from selenium.webdriver.common.by import By
 import time
-from PIL import Image, ImageDraw, ImageFont
 import requests
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -202,8 +201,8 @@ def get_links(urls):
     actions = ActionChains(driver)
     actions.move_to_element(element_to_hover_over).perform()
     time.sleep(1)
-    element_to_click = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/ul/li/span/button/span[text()='English']")
-
+    #element_to_click = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/ul/li/span/button/span[text()='English']")
+    element_to_click = driver.find_element(By.XPATH, "/html/body/div[2]/div/div/ul/li/span/button/span[text()='Український']")
     element_to_click.click()
 
     urls_brands = []
@@ -253,7 +252,7 @@ def get_links(urls):
     
 
 def main():
-    urls = ["https://can.starline.ru/20"]#, "https://can.starline.ru/40"]
+    urls = ["https://can.starline.ru/40"]
     links = get_links(urls)
     #links = ['https://can.starline.ru/20/1/6581', 'https://can.starline.ru/40/3/6588']
     caputure_element_as_screenshot(links)
