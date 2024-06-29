@@ -38,35 +38,35 @@ def parce(links):
                 driver.get(f'{link}#schemes')
                 time.sleep(3)
                 print(link)
+                brand = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div:nth-child(2) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
+                model = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div.ant-col.ant-col-xs-24.ant-col-sm-16.ant-col-md-16 > div > div:nth-child(1) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
+                year = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div.ant-col.ant-col-xs-24.ant-col-sm-16.ant-col-md-16 > div > div:nth-child(2) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
+                version = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div.ant-col.ant-col-xs-24.ant-col-sm-16.ant-col-md-16 > div > div:nth-child(3) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
+                
+                pdf_elements = driver.find_elements(By.CSS_SELECTOR, 'div > div > div > ul > li > div > div > h4 > a')
+                id = 0
+                for pdf_element in pdf_elements:
+
+                    pdf_url = pdf_element.get_attribute('href')
+                    
+                    if pdf_url.startswith('/'):
+                        base_url = driver.current_url.split('#')[0]
+                        pdf_url = base_url + pdf_url
+                    
+                    # Формируем финальное имя файла и путь к папке
+                    folder_name = f'{brand}_{model}_{year}_{version}'
+                    folder_name = folder_name.replace('/', '_').replace('\\', '_')
+                    output_folder = os.path.join('schemes', folder_name)
+                    os.makedirs(output_folder, exist_ok=True)
+                    
+                    final_filename = f'{brand}_{model}_{year}_{version}_{pdf_element.text}_{id}.pdf'
+                    final_filename = final_filename.replace('/', '_').replace('\\', '_')  # Убираем недопустимые символы
+                    output_path = os.path.join(output_folder, final_filename)
+                    id += 1
+                    print(f'Скачивание PDF из {pdf_url} в файл {output_path}')
+                    download_pdf(pdf_url, output_path)
             except:
                 continue
-            brand = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div:nth-child(2) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
-            model = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div.ant-col.ant-col-xs-24.ant-col-sm-16.ant-col-md-16 > div > div:nth-child(1) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
-            year = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div.ant-col.ant-col-xs-24.ant-col-sm-16.ant-col-md-16 > div > div:nth-child(2) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
-            version = driver.find_element(By.CSS_SELECTOR, "#root > section > main > section > div > form > div > div.ant-col.ant-col-xs-24.ant-col-sm-16.ant-col-md-16 > div > div:nth-child(3) > div > div > div.ant-col.ant-form-item-control > div > div > div > div > span.ant-select-selection-item").text
-            
-            pdf_elements = driver.find_elements(By.CSS_SELECTOR, 'div > div > div > ul > li > div > div > h4 > a')
-            id = 0
-            for pdf_element in pdf_elements:
-
-                pdf_url = pdf_element.get_attribute('href')
-                
-                if pdf_url.startswith('/'):
-                    base_url = driver.current_url.split('#')[0]
-                    pdf_url = base_url + pdf_url
-                
-                # Формируем финальное имя файла и путь к папке
-                folder_name = f'{brand}_{model}_{year}_{version}'
-                folder_name = folder_name.replace('/', '_').replace('\\', '_')
-                output_folder = os.path.join('schemes', folder_name)
-                os.makedirs(output_folder, exist_ok=True)
-                
-                final_filename = f'{brand}_{model}_{year}_{version}_{pdf_element.text}_{id}.pdf'
-                final_filename = final_filename.replace('/', '_').replace('\\', '_')  # Убираем недопустимые символы
-                output_path = os.path.join(output_folder, final_filename)
-                id += 1
-                print(f'Скачивание PDF из {pdf_url} в файл {output_path}')
-                download_pdf(pdf_url, output_path)
 
     
     finally:
